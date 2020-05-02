@@ -1,9 +1,11 @@
 #pragma once
+#include "CIocpSocket.h"
 #include <list>
 #include "CJsonObject.hpp"
 #include <string>
-#include <time.h>
+
 #include "CTcpSocket.h"
+
 using namespace neb;
 using namespace std;
 class CMyChatServer
@@ -12,28 +14,28 @@ public:
     BOOL CreateServer(char* szIp, u_short nPort);
     BOOL RunServer();
 private:
-    static DWORD WINAPI HandleClientThreadProc(LPVOID lpParam);
+    BOOL    RecvPackage(CIocpSocket::SocketInfo* pSocketInfo, DATAPACKAGE* pPackage);
+    BOOL    SendPackage(CIocpSocket::SocketInfo* pSocketInfo, DATAPACKAGE* pPackage);
+    DWORD   HandleClientData(CIocpSocket::SocketInfo* pSocketInfo);
 private:
 
     class ClinentInfo
     {
     public:
-        ClinentInfo(clock_t ct, CTcpSocket* ptcpsock, list<ClinentInfo*>* plistinfo)
-            :m_clockHeartTime(ct),
-            m_pTcpSocketClients(ptcpsock),
-            m_plistClientInFo(plistinfo)
+        ClinentInfo(CIocpSocket::SocketInfo* pSocketintfo)
+            
+           : m_pSocketInfo(pSocketintfo)
         {
-           // m_pClientAddr->push_back(m_pTcpSocketClients->GetSocketAddrIn());
+          
         }
-        clock_t                     m_clockHeartTime;  //上一次发送心跳包时间
-        CTcpSocket*                 m_pTcpSocketClients;
+        CIocpSocket::SocketInfo* m_pSocketInfo;
         list<ClinentInfo*>*          m_plistClientInFo;
-        //list<sockaddr_in>*          m_pClientAddr;
+       
 
     };
 
 
-    CTcpSocket m_TcpSocket;
+    CIocpSocket m_IocpSocket;
     list<ClinentInfo*> m_listClients;
     
 };

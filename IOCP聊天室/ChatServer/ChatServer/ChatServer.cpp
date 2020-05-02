@@ -8,7 +8,7 @@ int main()
 {
    
     CMyChatServer tcpServer;
-    tcpServer.CreateServer("127.0.0.1",9527);
+    tcpServer.CreateServer("127.0.0.1",12138);
     tcpServer.RunServer();
 
 

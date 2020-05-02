@@ -19,6 +19,9 @@
     <Filter Include="json">
       <UniqueIdentifier>{44f05d99-ab2c-497d-8731-e14661db6586}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Iocp">
+      <UniqueIdentifier>{5126819f-4a06-44c8-a4e0-d70d997f65a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChatServer.cpp">
@@ -39,6 +42,15 @@
     <ClCompile Include="..\..\common\CMyChatServer.cpp">
       <Filter>Socket</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\Lock.cpp">
+      <Filter>Iocp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\CByteStreamBuff.cpp">
+      <Filter>Iocp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\CIocpSocket.cpp">
+      <Filter>Iocp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\common\comman.h">
@@ -58,6 +70,15 @@
     </ClInclude>
     <ClInclude Include="..\..\common\CMyChatServer.h">
       <Filter>Socket</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\Lock.h">
+      <Filter>Iocp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\CByteStreamBuff.h">
+      <Filter>Iocp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\CIocpSocket.h">
+      <Filter>Iocp</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

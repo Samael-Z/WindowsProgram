@@ -184,29 +184,33 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\common\CByteStreamBuff.h" />
     <ClInclude Include="..\..\common\CInitSocketLib.h" />
+    <ClInclude Include="..\..\common\CIocpSocket.h" />
     <ClInclude Include="..\..\common\cJSON.h" />
     <ClInclude Include="..\..\common\CJsonObject.hpp" />
     <ClInclude Include="..\..\common\CMyChatServer.h" />
     <ClInclude Include="..\..\common\comman.h" />
     <ClInclude Include="..\..\common\CTcpSocket.h" />
+    <ClInclude Include="..\..\common\Lock.h" />
     <ClInclude Include="ChatClient.h" />
     <ClInclude Include="ChatClientDlg.h" />
-    <ClInclude Include="CPrivateDlg.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\CByteStreamBuff.cpp" />
     <ClCompile Include="..\..\common\CInitSocketLib.cpp" />
+    <ClCompile Include="..\..\common\CIocpSocket.cpp" />
     <ClCompile Include="..\..\common\cJSON.c" />
     <ClCompile Include="..\..\common\CJsonObject.cpp" />
     <ClCompile Include="..\..\common\CMyChatServer.cpp" />
     <ClCompile Include="..\..\common\CTcpSocket.cpp" />
+    <ClCompile Include="..\..\common\Lock.cpp" />
     <ClCompile Include="ChatClient.cpp" />
     <ClCompile Include="ChatClientDlg.cpp" />
-    <ClCompile Include="CPrivateDlg.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
