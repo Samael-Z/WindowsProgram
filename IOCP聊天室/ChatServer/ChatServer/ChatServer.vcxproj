@@ -92,8 +92,6 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\common\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>
-      </DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -151,26 +149,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\common\CByteStreamBuff.cpp" />
     <ClCompile Include="..\..\common\CInitSocketLib.cpp" />
-    <ClCompile Include="..\..\common\CIocpSocket.cpp" />
     <ClCompile Include="..\..\common\cJSON.c" />
     <ClCompile Include="..\..\common\CJsonObject.cpp" />
     <ClCompile Include="..\..\common\CMyChatServer.cpp" />
     <ClCompile Include="..\..\common\CTcpSocket.cpp" />
-    <ClCompile Include="..\..\common\Lock.cpp" />
     <ClCompile Include="ChatServer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\common\CByteStreamBuff.h" />
     <ClInclude Include="..\..\common\CInitSocketLib.h" />
-    <ClInclude Include="..\..\common\CIocpSocket.h" />
     <ClInclude Include="..\..\common\cJSON.h" />
     <ClInclude Include="..\..\common\CJsonObject.hpp" />
     <ClInclude Include="..\..\common\CMyChatServer.h" />
     <ClInclude Include="..\..\common\comman.h" />
     <ClInclude Include="..\..\common\CTcpSocket.h" />
-    <ClInclude Include="..\..\common\Lock.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

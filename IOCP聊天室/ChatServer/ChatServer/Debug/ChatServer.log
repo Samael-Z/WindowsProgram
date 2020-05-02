@@ -1,3 +1,0 @@
-﻿  CMyChatServer.cpp
-D:\C++Project\Project-About-C--\IOCP聊天室\common\CMyChatServer.cpp(45,49): warning C4018: “>=”: 有符号/无符号不匹配
-  ChatServer.vcxproj -> D:\C++Project\Project-About-C--\IOCP聊天室\ChatServer\Debug\ChatServer.exe

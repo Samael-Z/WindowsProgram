@@ -29,9 +29,8 @@ public:
 	sockaddr_in m_siServer;
 	static DWORD WINAPI ThreadProc(LPVOID lpParam);
 	void  EnableSendUI(BOOL bEnable);
-	
-	CString m_csToUsername;
-	CString m_csUserName;  //私聊名字
+	int m_InsertRow = 0;
+	CString m_csUserName;
 // 实现
 protected:
 	HICON m_hIcon;
@@ -51,6 +50,4 @@ public:
     afx_msg void OnBnClickedLogout();
     afx_msg void OnTimer(UINT_PTR nIDEvent);
 	afx_msg void OnNMDblclkUser(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg void OnBnClickedSendto();
-	afx_msg void OnNMClickUser(NMHDR* pNMHDR, LRESULT* pResult);
 };

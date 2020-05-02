@@ -19,9 +19,6 @@
     <Filter Include="Json">
       <UniqueIdentifier>{11e04ccf-4980-4fbc-8a48-3d45fa5fcf2f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="IOCP">
-      <UniqueIdentifier>{8d826336-1400-4caf-b8cd-9bc0baa6e1a4}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChatClient.h">
@@ -54,20 +51,14 @@
     <ClInclude Include="..\..\common\CJsonObject.hpp">
       <Filter>Json</Filter>
     </ClInclude>
+    <ClInclude Include="CPrivateDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\common\CTcpSocket.h">
       <Filter>Socket</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\CMyChatServer.h">
       <Filter>Socket</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\CByteStreamBuff.h">
-      <Filter>IOCP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\CIocpSocket.h">
-      <Filter>IOCP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\Lock.h">
-      <Filter>IOCP</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -89,20 +80,14 @@
     <ClCompile Include="..\..\common\CJsonObject.cpp">
       <Filter>Json</Filter>
     </ClCompile>
+    <ClCompile Include="CPrivateDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\common\CTcpSocket.cpp">
       <Filter>Socket</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\CMyChatServer.cpp">
       <Filter>Socket</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\CByteStreamBuff.cpp">
-      <Filter>IOCP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\CIocpSocket.cpp">
-      <Filter>IOCP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\Lock.cpp">
-      <Filter>IOCP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
