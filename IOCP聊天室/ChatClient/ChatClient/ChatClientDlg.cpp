@@ -7,7 +7,7 @@
 #include "ChatClient.h"
 #include "ChatClientDlg.h"
 #include "afxdialogex.h"
-#include "CPrivateDlg.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -74,7 +74,9 @@ BEGIN_MESSAGE_MAP(CChatClientDlg, CDialogEx)
 	ON_WM_CLOSE()
     ON_BN_CLICKED(BTN_LOGOUT, &CChatClientDlg::OnBnClickedLogout)
 	ON_WM_TIMER()
-	ON_NOTIFY(NM_DBLCLK, LISTCTRL_USER, &CChatClientDlg::OnNMDblclkUser)
+	
+    ON_BN_CLICKED(BTN_SENDTO, &CChatClientDlg::OnBnClickedSendto)
+	ON_NOTIFY(NM_CLICK, LISTCTRL_USER, &CChatClientDlg::OnNMClickUser)
 END_MESSAGE_MAP()
 
 
@@ -111,14 +113,17 @@ BOOL CChatClientDlg::OnInitDialog()
 
 	// TODO: 在此添加额外的初始化代码
 	m_listUser.InsertColumn(0, "用户名", LVCFMT_LEFT,70);
-	m_listUser.InsertColumn(1, "端口号", LVCFMT_LEFT, 70);
+
 	m_listUser.SetExtendedStyle(m_listUser.GetExtendedStyle() |
 		LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 	EnableSendUI(FALSE);
 	
 	//m_listUser.InsertItem(0, "xiaoliang");
-	SetDlgItemInt(EDT_PORT, 9527);
+	SetDlgItemInt(EDT_PORT, 12138);
 	SetDlgItemText(EDT_USERNAME, "小亮");
+
+	HANDLE hThread = CreateThread(NULL, 0, ThreadProc, this, 0, NULL);
+	CloseHandle(hThread);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -177,7 +182,7 @@ DWORD WINAPI CChatClientDlg::ThreadProc(LPVOID lpParam)
 	while (true)
 	{
 		//接收数据包
-		DATAPACKAGE package;
+		DATAPACKAGE package = { 0 };
 		if (!pThis->m_TcpSocketClients.RecvPackage(&package))
 		{
 			continue;
@@ -185,70 +190,87 @@ DWORD WINAPI CChatClientDlg::ThreadProc(LPVOID lpParam)
 		//判断数据类型
 		switch (package.m_hdr.m_nDataType)
 		{
-		case DT_LOGIN:
-		{
-			break;
-		}
 		case DT_MSG:
 		{
 			//解析json字符串
-			CJsonObject jsonMsg;
-			jsonMsg.Parse(package.m_pBuff);
-			std::string strMsgType;
-			jsonMsg.Get("type", strMsgType);
-			if (strMsgType == "public")  //群发
-			{
-				//将收到的数据显示到UI
-				//拼接json字符串显示输出用户名+消息内容
-				std::string strMsg;
-				std::string strUserName;
-				jsonMsg.Get("msg", strMsg);
-				jsonMsg.Get("name", strUserName);
-				std::string strToShow = strUserName + " 说 " + strMsg;
-				CString csShowText;
-				pThis->GetDlgItemText(EDT_SHOWMSG, csShowText);
-				csShowText += "\r\n";
-				csShowText += strToShow.c_str();
-				pThis->SetDlgItemText(EDT_SHOWMSG, csShowText);
-			}
-			if (strMsgType == "private") //私聊
-			{
-				std::string strMsg;
-				std::string strUserName;
-				jsonMsg.Get("msg", strMsg);
-				jsonMsg.Get("name", strUserName);
-				std::string strUser = pThis->m_csUserName.GetBuffer(0);
-				std::string strToShow = "（私聊）"+strUser + "对" + strUserName + " 说 " + strMsg;
+			neb::CJsonObject json;
+			json.Parse(package.m_pBuff);
 
-				CString csShowText;
-				pThis->GetDlgItemText(EDT_SHOWMSG, csShowText);
-				csShowText += "\r\n";
-				csShowText += strToShow.c_str();
-				pThis->SetDlgItemText(EDT_SHOWMSG, csShowText);
+			std::string strType;
+			json.Get("type", strType);
+
+			//消息
+			std::string strMSg;
+			json.Get("msg", strMSg);
+
+			//昵称
+			std::string strUsername;
+			json.Get("name", strUsername);
+
+			//显示数据
+			CString csText;
+			pThis->GetDlgItemText(EDT_SHOWMSG, csText);
+
+			if (strType == "public")//群发
+			{
+				//构造成 XXX 说: XXX的格式
+				std::string strToShow = strUsername + " 说: " + strMSg;
+				csText += "\r\n";
+				csText += strToShow.c_str();
 			}
-			
-			
+			else if (strType == "private") //私聊 
+			{
+				std::string strToUsername;
+				json.Get("to", strToUsername);
+
+				if (!strcmp(strToUsername.c_str(), pThis->m_csUserName))
+				{
+					std::string strToShow = strUsername + " 对你说: " + strMSg;
+					csText += "\r\n";
+					csText += strToShow.c_str();
+				}
+
+			}
+			pThis->SetDlgItemText(EDT_SHOWMSG, csText);
 
 			break;
 		}
-		case DT_LOGIN_OK:
+		case DT_FLUSH_NAME:
 		{
-			CString csUserName = package.m_pBuff;
-			
-			pThis->m_listUser.InsertItem(pThis->m_InsertRow, csUserName);
-			//CString csUserPort;
-			/*csUserPort.Format("%d", pThis->m_SocketClients.m_nPort);
-			pThis->m_listUser.SetItemText(pThis->m_InsertRow++, 1, csUserPort);*/
-			pThis->EnableSendUI(TRUE);
-			
+			pThis->m_listUser.DeleteAllItems();
+			DATAPACKAGE package;
+			package.m_hdr.m_nDataLen = pThis->m_csUserName.GetLength() + 1;
+			package.m_hdr.m_nDataType = DT_ADD_NAME;
+			package.m_pBuff = pThis->m_csUserName.GetBuffer(0);
+			pThis->m_TcpSocketClients.SendPackage(&package);
 			break;
+		}
+		case DT_ADD_NAME:
+		{
+			pThis->m_listUser.InsertItem(0, package.m_pBuff);
+			break;
+		}
+		case DT_DEL_NAME:
+		{
+			CString szName;
+			int nCount = pThis->m_listUser.GetItemCount();
+			for (int i = 0; i < nCount; i++)
+			{
+				szName = pThis->m_listUser.GetItemText(i, 0);
+				if (szName == package.m_pBuff)
+				{
+					pThis->m_listUser.DeleteItem(i);
+					break;
+				}
+			}
+			break;
+		}
+
 		}
 		//释放缓冲区
-		if (package.m_pBuff!= NULL)
+		if (package.m_pBuff != NULL)
 		{
 			delete[] package.m_pBuff;
-		}
-
 		}
 	}
 	return 0;
@@ -272,8 +294,10 @@ void CChatClientDlg::EnableSendUI(BOOL bEnable)
 void CChatClientDlg::OnBnClickedLogin()
 {
 
-	CString csUserName;
-	GetDlgItemText(EDT_USERNAME, csUserName);
+
+	CString csUsername;
+	GetDlgItemText(EDT_USERNAME, csUsername);
+	m_csUserName = csUsername;
 	int nPort = GetDlgItemInt(EDT_PORT);
 	if (!m_TcpSocketClients.CreateSocket())
 	{
@@ -285,19 +309,17 @@ void CChatClientDlg::OnBnClickedLogin()
 	}
 
 	DATAPACKAGE package;
-	package.m_hdr.m_nDataLen = csUserName.GetLength() + 1;
+	package.m_hdr.m_nDataLen = csUsername.GetLength() + 1;
 	package.m_hdr.m_nDataType = DT_LOGIN;
-	package.m_pBuff = csUserName.GetBuffer(0);
+	package.m_pBuff = csUsername.GetBuffer(0);
 	
 	
 	if (!m_TcpSocketClients.SendPackage(&package))
 	{
 		AfxMessageBox("登录数据包发送失败");
 	}
-	HANDLE hThread = CreateThread(NULL, 0, ThreadProc, this, 0, NULL);
-	CloseHandle(hThread);
 	
-	
+	EnableSendUI(TRUE);
 }
 
 
@@ -308,13 +330,15 @@ void CChatClientDlg::OnBnClickedSend()
 	GetDlgItemText(EDT_SEND, csText);
 	//获取用户名
 	
-	GetDlgItemText(EDT_USERNAME, m_csUserName);
+	CString csUsername;
+	GetDlgItemText(EDT_USERNAME, csUsername);
+	
 	//定义一个json对象
 	//生成调用对象的函数生成键值对
 	//把键值对压缩成一行数据
 	CJsonObject JsonSend;
 	JsonSend.Add("type","public");
-	JsonSend.Add("name", m_csUserName.GetBuffer(0));
+	JsonSend.Add("name", csUsername.GetBuffer(0));
 	JsonSend.Add("msg", csText.GetBuffer(0));
 	std::string strText = JsonSend.ToString();
 
@@ -334,30 +358,38 @@ void CChatClientDlg::OnBnClickedSend()
 
 void CChatClientDlg::OnClose()
 {
-	
-	DATAPACKAGE packageOut;
-	packageOut.m_hdr.m_nDataLen = 0;
-	packageOut.m_hdr.m_nDataType  = DT_LOGINOUT;
-	packageOut.m_pBuff = NULL;
-	if (!m_TcpSocketClients.SendPackage(&packageOut))
-	{
-		AfxMessageBox("关闭数据包发送失败");
-	}
+	DATAPACKAGE package;
+
+	package.m_hdr.m_nDataLen = m_csUserName.GetLength() + 1;
+	package.m_hdr.m_nDataType = DT_DEL_NAME;
+	package.m_pBuff = m_csUserName.GetBuffer(0);
+	m_TcpSocketClients.SendPackage(&package);
+
+	package.m_hdr.m_nDataLen = 0;
+	package.m_hdr.m_nDataType = DT_LOGINOUT;
+	package.m_pBuff = NULL;
+	m_TcpSocketClients.SendPackage(&package);
+
 	m_TcpSocketClients.CloseSocket();
-	//CDialogEx::OnClose();
+
+	CDialogEx::OnClose();
 }
 
 
 void CChatClientDlg::OnBnClickedLogout()
 {
-	DATAPACKAGE packageOut;
-	packageOut.m_hdr.m_nDataLen = 0;
-	packageOut.m_hdr.m_nDataType = DT_LOGINOUT;
-	packageOut.m_pBuff = NULL;
-	if (!m_TcpSocketClients.SendPackage(&packageOut))
-	{
-		AfxMessageBox("下线数据包发送失败");
-	}
+	DATAPACKAGE package;
+
+	package.m_hdr.m_nDataLen = m_csUserName.GetLength() + 1;
+	package.m_hdr.m_nDataType = DT_DEL_NAME;
+	package.m_pBuff = m_csUserName.GetBuffer(0);
+	m_TcpSocketClients.SendPackage(&package);
+
+	package.m_hdr.m_nDataLen = 0;
+	package.m_hdr.m_nDataType = DT_LOGINOUT;
+	package.m_pBuff = NULL;
+	m_TcpSocketClients.SendPackage(&package);
+
 	m_TcpSocketClients.CloseSocket();
 	
 	EnableSendUI(FALSE);
@@ -366,50 +398,50 @@ void CChatClientDlg::OnBnClickedLogout()
 
 void CChatClientDlg::OnTimer(UINT_PTR nIDEvent)
 {
-	/*DATAPACKAGE packageOut;
-	packageOut.m_hdr.m_nDataLen = 0;
-	packageOut.m_hdr.m_nDataType = DT_HEART;
-	packageOut.m_pBuff = NULL;
-	m_SocketClients.SendPackage(&packageOut, &m_siServer);*/
-
 	CDialogEx::OnTimer(nIDEvent);
 }
 
 
-void CChatClientDlg::OnNMDblclkUser(NMHDR* pNMHDR, LRESULT* pResult)
+
+
+void CChatClientDlg::OnBnClickedSendto()
+{
+    
+	CString csText;
+	GetDlgItemText(EDT_SEND, csText);
+
+	//构造json字符串
+// 	{"type":"public", "name" : "昵称", "msg" : "我是消息"} --群发
+// 	{ "type":"private", "name" : "昵称", "msg" : "我是消息", "to" : "私聊对象" } --私聊
+	CString csUsername;
+
+	GetDlgItemText(EDT_USERNAME, csUsername);
+	m_csUserName = csUsername;
+
+	neb::CJsonObject jsonSend;
+	jsonSend.Add("type", "private");
+	jsonSend.Add("name", m_csUserName.GetBuffer(0));
+	jsonSend.Add("msg", csText.GetBuffer(0));
+	jsonSend.Add("to", m_csToUsername.GetBuffer(0));
+	std::string strText = jsonSend.ToString();
+
+	//发送
+	DATAPACKAGE package;
+	package.m_hdr.m_nDataLen = strText.size() + 1;
+	package.m_hdr.m_nDataType = DT_MSG;
+	package.m_pBuff = (char*)strText.c_str();
+	m_TcpSocketClients.SendPackage(&package);
+}
+
+
+void CChatClientDlg::OnNMClickUser(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 	// TODO: 在此添加控件通知处理程序代码
-	
-	if (!m_listUser.GetSelectionMark())
-	{
-		CPrivateDlg dlg;
-		if (dlg.DoModal() == IDOK)
-		{
-			CString csPrivate = dlg.GetPrivateMessage();
-			 CString csUserName = m_listUser.GetItemText(pNMItemActivate->iItem, pNMItemActivate->iSubItem);
-
-			CJsonObject JsonSend;
-			JsonSend.Add("type", "private");
-			JsonSend.Add("name", csUserName.GetBuffer(0));
-			JsonSend.Add("msg", csPrivate.GetBuffer(0));
-			std::string strText = JsonSend.ToString();
-
-			//发送数据
-			DATAPACKAGE package;
-			package.m_hdr.m_nDataLen = strText.size() + 1;
-			package.m_hdr.m_nDataType = DT_MSG;
-			package.m_pBuff = (char*)strText.c_str();
-
-			if (!m_TcpSocketClients.SendPackage(&package))
-			{
-				AfxMessageBox("私聊消息数据包发送失败");
-			}
-			
-
-
-		}
-		
-	}
 	*pResult = 0;
+	int nItem = pNMItemActivate->iItem;
+	if (nItem != -1)
+	{
+		m_csToUsername = m_listUser.GetItemText(nItem, 0);
+	}
 }

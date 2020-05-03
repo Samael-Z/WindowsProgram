@@ -1,0 +1,4 @@
+﻿  CMyChatServer.cpp
+D:\C++Project\Project-About-C--\IOCP聊天室\common\CMyChatServer.cpp(152,47): warning C4018: “>=”: 有符号/无符号不匹配
+D:\C++Project\Project-About-C--\IOCP聊天室\common\CMyChatServer.cpp(144): warning C4715: “CMyChatServer::HandleClientData”: 不是所有的控件路径都返回值
+  ChatServer.vcxproj -> D:\C++Project\Project-About-C--\IOCP聊天室\ChatServer\Debug\ChatServer.exe
