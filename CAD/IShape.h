@@ -1,55 +1,65 @@
 #pragma once
-#include <afxwin.h>
-
-class IShape :public CObject
+#include "framework.h"
+class IShape:public CObject
 {
+  
 public:
     IShape();
-    virtual ~IShape();
-    CPoint GetBeginPoint() const { return m_ptBegin; }
-    CPoint GetEndPoint() const { return m_ptEnd; }
-    void   SetBeginPoint(CPoint val) { m_ptBegin = val; }
-    void   SetEndPoint(CPoint val) { m_ptEnd = val; }
-	void  MoveShape(int offsetX, int offsetY);
-	void RotateShape();
+    //构建一个绘图的OnDraw纯虚函数基类，这个函数的实现交给具体的图形去完成
+    //充分的体现了C++的多态，封装，继承
+    //写虚函数的地方
     virtual void OnDraw(CDC* pDC) = 0;
-	virtual bool ISelect(CPoint pt) = 0;
-	virtual void OnselectDraw(CDC* pDC) = 0;
-	virtual void Serialize(CArchive& ar) override;
-protected:
-    CPoint  m_ptBegin;
-    CPoint  m_ptEnd;
-    
+    virtual BOOL IsSelect(CPoint pt) = 0;
+    virtual void OnSelectDraw(CDC* pDC) = 0;
+            
+
+private:
+    //绘制图形的两个坐标点，鼠标按下和弹起的坐标
+    CPoint m_ptBegin;
+    CPoint m_ptEnd;
+    //画笔的变量
+    int m_nPenStyle;
+    int m_nPenWith;
+    COLORREF m_clrPenColor;
+
+    //画刷的变量
+    int			m_nBrushStyle;
+    int			m_nShadowStyle;
+    COLORREF	m_varBrushColor;
+
 
 public:
-	int GetPenStyle() const { return m_nPenStyle; }
-	int GetPenWidth() const { return m_nPenWidth; }
-	int GetBrushStyle() const { return m_nBrushStyle; }
-	int GetShadowStyle() const { return m_nShadowStyle; }
-	void SetPenStyle(int val) { m_nPenStyle = val; }
-	void SetPenWidt(int val) { m_nPenWidth = val; }
-	void SetBrushStyle(int val) { m_nBrushStyle = val; }
-	void SetShadowStyle(int val) { m_nShadowStyle = val; }
-	void SetPenColor(COLORREF val) { m_clrPenColor = val; }
-	void SetBrushColor(COLORREF val) { m_clrBrushColor = val; }
-	COLORREF GetPenColor() const { return m_clrPenColor; }
-	COLORREF GetBrushColor() const { return m_clrBrushColor; }
+    //变量的Get和Set函数
+    void    SetBeginPt(CPoint point);
+    CPoint  GetBeginPt() const;
+    void    SetEndPt(CPoint point);
+    CPoint  GetEndPt() const;
 
-protected:
-	int m_nPenStyle;
-	int m_nPenWidth;
-	COLORREF m_clrPenColor;
-	int m_nBrushStyle;
-	int m_nShadowStyle;
-	COLORREF m_clrBrushColor;
+    /*在图形基类添加关于画笔的数据成员，让每个派生类图形自己选择属于自己的画笔去绘图*/
+    int GetPenStyle() const { return m_nPenStyle; }
+    void SetPenStyle(int val) { m_nPenStyle = val; }
+    int GetPenWith() const { return m_nPenWith; }
+    void SetPenWith(int val) { m_nPenWith = val; }
+    COLORREF GetClrPenColor() const { return m_clrPenColor; }
+    void SetClrPenColor(COLORREF val) { m_clrPenColor = val; }
 
+    int GetBrushStyle() const { return m_nBrushStyle; }
+    void SetBrushStyle(int val) { m_nBrushStyle = val; }
+    int GetShadowStyle() const { return m_nShadowStyle; }
+    void SetShadowStyle(int val) { m_nShadowStyle = val; }
+    COLORREF GetClrBrushColor() const { return m_varBrushColor; }
+    void SetClrBrushColor(COLORREF val) { m_varBrushColor = val; }
+
+    virtual void Serialize(CArchive& ar);
 };
-class IFactory
+
+class IShapeFactory
 {
 public:
-    virtual IShape* CreateShape() = 0;
 
+    virtual IShape* CreateIShape() = 0;
 };
+
 
 
 

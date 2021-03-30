@@ -1,50 +1,62 @@
 #include "pch.h"
 #include "IShape.h"
-#include "Rotate.h"
 
 IShape::IShape()
 {
+
 }
 
-IShape::~IShape()
+void IShape::SetBeginPt(CPoint point)
 {
+    m_ptBegin = point;
 }
 
-void IShape::MoveShape(int offsetX, int offsetY)
+CPoint IShape::GetBeginPt() const
 {
-    m_ptBegin += SIZE{ offsetX, offsetY };
-    m_ptEnd += SIZE{ offsetX, offsetY };
+    return m_ptBegin;
 }
 
-void IShape::RotateShape()
+void IShape::SetEndPt(CPoint point)
 {
-    rotate(m_ptBegin, m_ptEnd, 90.0f);
+    m_ptEnd = point;
 }
+
+CPoint IShape::GetEndPt() const
+{
+    return m_ptEnd;
+}
+
+
+
 
 void IShape::Serialize(CArchive& ar)
 {
-    CObject::Serialize(ar);
     if (ar.IsStoring())
-    {
-        ar << m_ptEnd
-            << m_clrBrushColor
-            << m_clrPenColor
-            << m_nPenStyle
-            << m_nPenWidth
-            << m_nShadowStyle
-            << m_ptBegin
-            << m_nBrushStyle;
+    {	// storing code
+        
+        ar << m_ptBegin;
+        ar << m_ptEnd;
+        //画笔的变量
+        ar << m_nPenStyle;
+        ar << m_nPenWith;
+        ar << m_clrPenColor;
+        //画刷的变量
+        ar << m_nBrushStyle;
+        ar << m_nShadowStyle;
+        ar << m_varBrushColor;
     }
     else
-    {
-        ar  >> m_ptEnd
-            >> m_clrBrushColor
-            >> m_clrPenColor
-            >> m_nPenStyle
-            >> m_nPenWidth
-            >> m_nShadowStyle
-            >> m_ptBegin
-            >> m_nBrushStyle;
+    {	
+        ar >> m_ptBegin;
+        ar >> m_ptEnd;
+        //画笔的变量
+        ar >> m_nPenStyle;
+        ar >> m_nPenWith;
+        ar >> m_clrPenColor;
+
+        //画刷的变量
+        ar >> m_nBrushStyle;
+        ar >> m_nShadowStyle;
+        ar >> m_varBrushColor;
     }
 }
-

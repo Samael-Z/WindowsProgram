@@ -12,12 +12,8 @@
 
 #include "CADDoc.h"
 #include "CADView.h"
-#include "CEllipse.h"
-#include "CLine.h"
-#include "CRectangle.h"
-#include "CStar.h"
-#include "CDrawSetting.h"
-
+#include "CDelOpt.h"
+#include "CAddOpt.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -33,20 +29,23 @@ BEGIN_MESSAGE_MAP(CCADView, CView)
 	ON_COMMAND(ID_FILE_PRINT, &CView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_DIRECT, &CView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CView::OnFilePrintPreview)
-	ON_COMMAND(IDB_LINE, &CCADView::OnIdbLine)
-	ON_COMMAND(IDB_RECT, &CCADView::OnIdbRect)
-	ON_COMMAND(IDB_CIRCLE, &CCADView::OnIdbCircle)
+    ON_COMMAND(MN_LINE, &CCADView::OnLine)
+	ON_COMMAND(MN_RECT, &CCADView::OnRect)
+	ON_COMMAND(MN_STAR, &CCADView::OnStar)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEMOVE()
-	ON_COMMAND(IDB_STAR, &CCADView::OnIdbStar)
-	ON_COMMAND(IDM_SETTING, &CCADView::OnSetting)
-    ON_WM_RBUTTONDOWN()
-	ON_WM_RBUTTONUP()
-    ON_COMMAND(IDB_ROTATE, &CCADView::OnRotate)
-	ON_COMMAND(IDB_DELETE, &CCADView::OnDelete)
-	ON_COMMAND(ID_EDIT_REDO, &CCADView::OnEditRedo)
-	ON_COMMAND(ID_EDIT_UNDO, &CCADView::OnEditUndo)
+	ON_COMMAND(MN_ELLIPSE, &CCADView::OnEllipse)
+	ON_COMMAND(MN_PEN, &CCADView::OnPen)
+	ON_COMMAND(MN_BRUSH, &CCADView::OnBrush)
+    ON_COMMAND(MN_CHANGE, &CCADView::OnChange)
+	ON_COMMAND(MN_DELETE, &CCADView::OnDelete)
+	ON_WM_RBUTTONDOWN()
+    ON_COMMAND(MN_ROTE, &CCADView::OnRote)
+	ON_COMMAND(MN_SIGLEPEN, &CCADView::OnSiglepen)
+	ON_COMMAND(MN_SIGLEBRUSH, &CCADView::OnSiglebrush)
+    ON_COMMAND(ACCE_UNDO, &CCADView::OnUndo)
+	ON_COMMAND(ACCE_REDO, &CCADView::OnRedo)
 END_MESSAGE_MAP()
 
 // CCADView 构造/析构
@@ -54,19 +53,22 @@ END_MESSAGE_MAP()
 CCADView::CCADView() noexcept
 {
 	// TODO: 在此处添加构造代码
+	m_pCurrentIShape = nullptr;
+	m_pShapeFactory = nullptr;
+	m_pSelectShape = nullptr;
+	m_nPenStyle = PS_SOLID;
+	m_nPenWidth = 1;
+	m_clrPenColor = RGB(0, 0, 0);
 	
+	
+	m_nBrushStyle = 0;
+	m_nShadowStyle = 0;
+	m_varBrushColor = RGB(0, 0, 0);
 
 }
 
-
 CCADView::~CCADView()
 {
-	if (m_pFactoryShape!= nullptr)
-	{
-		delete m_pFactoryShape;
-		m_pFactoryShape = nullptr;
-	}
-	
 }
 
 BOOL CCADView::PreCreateWindow(CREATESTRUCT& cs)
@@ -86,43 +88,46 @@ void CCADView::OnDraw(CDC* pDC)
 	if (!pDoc)
 		return;
 
+	// TODO: 在此处为本机数据添加绘制代码
+	/*  0. 创建内存(兼容)DC
+		1. 创建兼容位图
+		2. 将兼容位图选入内存DC
+		3. 在内存DC中绘图
+		4. 将内存DC中的图片拷贝到窗口
+	*/
+	CRect  cClientRc;
+	GetClientRect(&cClientRc);
 	CDC dcMem;
 	dcMem.CreateCompatibleDC(pDC);
-	CBitmap bmpMem;
-	CRect rect;
-	GetClientRect(&rect);
-	bmpMem.CreateCompatibleBitmap(pDC,rect.Width(),rect.Height());
+	CBitmap cBtmap;
+	cBtmap.CreateCompatibleBitmap(pDC, cClientRc.Width(), cClientRc.Height());
+	dcMem.SelectObject(&cBtmap);
+	dcMem.FillSolidRect(&cClientRc, RGB(255, 255, 255));
 	
-	dcMem.SelectObject(&bmpMem);
-	dcMem.FillSolidRect(&rect,RGB(255,255,255));
 	
-	//画笔设置
+
 	
-	//画刷设置
-	
-	// TODO: 在此处为本机数据添加绘制代码
-	
-		POSITION pos = GetDocument()->m_listShapes.GetHeadPosition();
-		while (pos)
+	auto pos = GetDocument()->m_LstIshapes.GetHeadPosition();
+	while (pos)
+	{
+		auto  IShapes = GetDocument()->m_LstIshapes.GetNext(pos);
+		if (IShapes == m_pSelectShape)
 		{
-			IShape* pShape = GetDocument()->m_listShapes.GetNext(pos);
-			if (pShape == m_pSelectShape)
-			{
-				pShape->OnselectDraw(&dcMem);
-			}
-			else
-			{
-				pShape->OnDraw(&dcMem);
-			}
-			
+			//如果是选中的图形就重绘，不是就画原来的图形
+			IShapes->OnSelectDraw(&dcMem);
+		}
+		else
+		{
+			IShapes->OnDraw(&dcMem);
 		}
 
-		if (m_bOnDraw)
-		{
-			m_pCurrentShape->OnDraw(&dcMem);
-		}
-		pDC->BitBlt(0, 0, rect.Width(), rect.Height(), &dcMem, 0, 0, SRCCOPY);
-		//dcMem.SelectObject(&hOldPen);
+	}
+	if (m_pCurrentIShape != nullptr)
+	{
+		m_pCurrentIShape->OnDraw(&dcMem);
+	}
+	
+	pDC->BitBlt(0, 0, cClientRc.Width(), cClientRc.Height(), &dcMem, 0, 0, SRCCOPY);
 }
 
 
@@ -142,7 +147,6 @@ void CCADView::OnBeginPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 void CCADView::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 {
 	// TODO: 添加打印后进行的清理过程
-	
 }
 
 
@@ -170,219 +174,412 @@ CCADDoc* CCADView::GetDocument() const // 非调试版本是内联的
 // CCADView 消息处理程序
 
 
-void CCADView::OnIdbLine()
+void CCADView::OnLine()
 {
-	if (m_pFactoryShape!= nullptr)
-	{
-		delete m_pFactoryShape;
-		m_pFactoryShape = nullptr;
-	}
-	m_pFactoryShape = new CLineFactory;
-}
-
-
-void CCADView::OnIdbRect()
-{
-	if (m_pFactoryShape != nullptr)
-	{
-		delete m_pFactoryShape;
-		m_pFactoryShape = nullptr;
-	}
-	m_pFactoryShape = new CRectangleFactory;
-}
-
-
-void CCADView::OnIdbCircle()
-{
-	if (m_pFactoryShape != nullptr)
-	{
-		delete m_pFactoryShape;
-		m_pFactoryShape = nullptr;
-	}
-	m_pFactoryShape = new CEllipseFactory;
+  
 	
+	m_pShapeFactory = shared_ptr<IShapeFactory>(new CDrawLineFactory);
+   
 }
 
+void CCADView::OnRect()
+{
+	m_pShapeFactory = shared_ptr<IShapeFactory>(new CDrawRectangleFactory);
+}
+
+
+void CCADView::OnStar()
+{
+	m_pShapeFactory = shared_ptr<IShapeFactory>(new CDrawFiveStarFactory);
+}
+
+void CCADView::OnEllipse()
+{
+	// 绘制椭圆
+	m_pShapeFactory = shared_ptr<IShapeFactory>(new CDrawEllipseFactory);
+}
 
 void CCADView::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	// 创建图形对象,设置起点
+	if (m_pShapeFactory == nullptr)
+	{
+		return;
+	}
 
-		m_pCurrentShape = m_pFactoryShape->CreateShape();
-		m_pCurrentShape->SetPenStyle(m_nViewPenStyle);
-		m_pCurrentShape->SetPenColor(m_clrViewPenColor);
-		m_pCurrentShape->SetPenWidt(m_nViewPenWidth);
-		m_pCurrentShape->SetBrushColor(m_clrViewBrushColor);
-		m_pCurrentShape->SetShadowStyle(m_nViewShadowStyle);
-		m_pCurrentShape->SetBrushStyle(m_nViewBrushStyle);
-		m_pCurrentShape->SetBeginPoint(point);
-		m_bOnDraw = TRUE;
-		SetCapture();		
-	
+	if (nFlags & MK_CONTROL) //如果ctrl按下就选中图形，否则绘制图形
+	{
+        auto pos = GetDocument()->m_LstIshapes.GetTailPosition();
+        while (pos)
+        {
+			auto Shape = GetDocument()->m_LstIshapes.GetPrev(pos);
+            if (Shape->IsSelect(point) )
+            {
+				m_pSelectShape = Shape;
+				m_ptMoveBegin = point;
+
+                m_ptOldBegin =	m_pSelectShape->GetBeginPt();
+                m_ptOldEnd =	m_pSelectShape->GetEndPt();
+				break;
+            }
+        }
+		InvalidateRect(NULL, FALSE);
 		
+	} 
+	else
+	{
+		m_pCurrentIShape =m_pShapeFactory->CreateIShape();
+		m_pCurrentIShape->SetBeginPt(point);
+        SetCapture();
+        //设置画笔样式
+		m_pCurrentIShape->SetPenStyle(		m_nPenStyle);
+		m_pCurrentIShape->SetPenWith(		m_nPenWidth);
+		m_pCurrentIShape->SetClrPenColor(	m_clrPenColor);
+
+        //设置画刷样式
+		m_pCurrentIShape->SetBrushStyle(	m_nBrushStyle);
+		m_pCurrentIShape->SetShadowStyle(	m_nShadowStyle);
+		m_pCurrentIShape->SetClrBrushColor(	m_varBrushColor);
+	}
+
+	
+
 	CView::OnLButtonDown(nFlags, point);
 }
-
 
 void CCADView::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	if (m_bOnDraw)
+	if (m_pCurrentIShape == nullptr)
 	{
-		m_pCurrentShape->SetEndPoint(point);
-		InvalidateRect(NULL, FALSE);
-		ReleaseCapture();
-		m_bOnDraw = FALSE;
-		GetDocument()->m_listShapes.AddTail(m_pCurrentShape);
+		return;
 	}
-	IAction* pAction = new CInsertAction(m_pCurrentShape, &GetDocument()->m_listShapes);
-	m_actionmanager.InsertAction(pAction);
+  
+	
+    if (nFlags & MK_CONTROL)
+    {
+		CMoveOpt* Popt = new CMoveOpt(
+			m_pSelectShape,
+			m_ptOldBegin,
+			m_ptOldEnd,
+			m_pSelectShape->GetBeginPt(),
+			m_pSelectShape->GetEndPt());
+			m_OptMgr.AddOpt(Popt);
+        return;
+    }
 
+	m_pCurrentIShape->SetEndPt(point);
+	CAddOpt* pOpt = new CAddOpt(
+		m_pCurrentIShape,
+		&(GetDocument()->m_LstIshapes));
+		m_OptMgr.AddOpt(pOpt);
+
+	ReleaseCapture();
+	GetDocument()->m_LstIshapes.AddTail(m_pCurrentIShape);
+
+	
+	m_pCurrentIShape = nullptr;
+	InvalidateRect(NULL, false);
 	CView::OnLButtonUp(nFlags, point);
 }
 
 
 void CCADView::OnMouseMove(UINT nFlags, CPoint point)
 {
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	if (m_MoveShape)
+	//移动之前把原来的位置保存下来
+
+	if (nFlags& MK_LBUTTON&& m_pSelectShape !=nullptr && nFlags & MK_CONTROL)
 	{
-		m_pSelectShape->MoveShape(point.x - m_MoveBegin.x, point.y-m_MoveBegin.y);
-		InvalidateRect(NULL,FALSE);
-		m_MoveBegin = point;
-	}
-	if (m_bOnDraw)
-	{
-		m_pCurrentShape->SetEndPoint(point);
-		InvalidateRect(NULL,FALSE);
-	}
 		
-	
-	
+        CPoint nOffset;  //保存偏移的距离
+        nOffset.x = point.x - m_ptMoveBegin.x;
+        nOffset.y = point.y - m_ptMoveBegin.y;
+
+        CPoint ptNewBegin = m_pSelectShape->GetBeginPt();
+		//获取原来的起点加上偏移就是新起点。
+        ptNewBegin += nOffset;
+		m_pSelectShape->SetBeginPt(ptNewBegin);
+
+        CPoint ptNewEnd =m_pSelectShape->GetEndPt();
+        ptNewEnd += nOffset;
+		m_pSelectShape->SetEndPt(ptNewEnd);
+		//保存新起点，不然没法移动
+		m_ptMoveBegin = point;
+
+		
+		InvalidateRect(NULL, false);
+		return;
+
+	}
+	if (nFlags & MK_LBUTTON && m_pCurrentIShape != nullptr)
+	{
+
+		m_pCurrentIShape->SetEndPt(point);
+        InvalidateRect(NULL, false);
+	}
 
 	CView::OnMouseMove(nFlags, point);
 }
 
 
-void CCADView::OnIdbStar()
+
+
+void CCADView::OnPen()
 {
-	if (m_pFactoryShape != nullptr)
-	{
-		delete m_pFactoryShape;
-		m_pFactoryShape = nullptr;
-	}
-	m_pFactoryShape = new CStarFactory;
+	CPenSet  PenSetStyle;
+	//保存上一次选择的画笔
+	PenSetStyle.m_PenStyle =	m_nPenStyle;
+	PenSetStyle.m_edtWidth =	m_nPenWidth;
+	PenSetStyle.m_PenClr =		m_clrPenColor;
+
+	PenSetStyle.DoModal();
+	//得到更改后的画笔属性
+	m_nPenStyle =	PenSetStyle.m_PenStyle;
+	m_nPenWidth =	PenSetStyle.m_edtWidth;
+	m_clrPenColor = PenSetStyle.m_PenClr;
+
 }
 
 
-void CCADView::OnSetting()
+void CCADView::OnBrush()
 {
-	CDrawSetting  Dlg;
-	Dlg.SetPenColor(m_clrViewPenColor);
-	Dlg.SetPenStyle(m_nViewPenStyle);
-	Dlg.SetPenWidt(m_nViewPenWidth);
-	Dlg.SetBrushColor(m_clrViewBrushColor);
-	Dlg.SetBrushStyle(m_nViewBrushStyle);
-	Dlg.SetShadowStyle(m_nViewShadowStyle);
-	if (Dlg.DoModal() == IDOK)
-	{
-		m_clrViewPenColor = Dlg.GetPenColor();
-		m_nViewPenStyle = Dlg.GetPenStyle();
-		m_nViewPenWidth = Dlg.GetPenWidth();
-		m_clrViewBrushColor = Dlg.GetBrushColor();
-		m_nViewBrushStyle = Dlg.GetBrushStyle();
-		m_nViewShadowStyle = Dlg.GetShadowStyle();
-	}
+	CBrushSet BrushSetStyle;
+
+	BrushSetStyle.m_nBrushStyle =	m_nBrushStyle;
+	BrushSetStyle.m_nShadowStyle =	m_nShadowStyle;
+	BrushSetStyle.m_varBrushColor = m_varBrushColor;
+
+	BrushSetStyle.DoModal();
+	m_nBrushStyle =		BrushSetStyle.m_nBrushStyle;
+	m_nShadowStyle =	BrushSetStyle.m_nShadowStyle;
+	m_varBrushColor =	BrushSetStyle.m_varBrushColor;
+
 }
 
 
-void CCADView::OnRButtonDown(UINT nFlags, CPoint point)
+void CCADView::OnChange()
 {
-	POSITION pos = GetDocument()->m_listShapes.GetTailPosition();
-	while (pos)
-	{
-		IShape* pShape = GetDocument()->m_listShapes.GetPrev(pos);
-		if ( pShape->ISelect(point) )
-		{
-			m_pSelectShape = pShape;
-			InvalidateRect(NULL,false);
-			m_MoveShape = TRUE;
-			m_MoveBegin = point;
-			m_ptOriMoveBegin = point;
-			break;
-		}
-	}
-
-    CView::OnRButtonDown(nFlags, point);
-}
-
-
-void CCADView::OnRButtonUp(UINT nFlags, CPoint point)
-{
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	m_MoveShape = FALSE;
-	//把移动图形的操作放到栈中，等待被撤销
-	CMoveAction* pMoveAction = new CMoveAction(m_pSelectShape, point, m_ptOriMoveBegin);
-	m_actionmanager.InsertAction(pMoveAction);
-	CView::OnRButtonUp(nFlags, point);
-}
-
-
-void CCADView::OnRotate()
-{
-    // TODO: 在此添加命令处理程序代码
-	if (m_pSelectShape!= NULL)
-	{
-		m_pSelectShape->RotateShape();
-		InvalidateRect(NULL, FALSE);
-	}
+	//旋转实现的接口，放到右键菜单上去了
 }
 
 
 void CCADView::OnDelete()
 {
-	// TODO: 在此添加命令处理程序代码
-	if (m_pSelectShape!=NULL)
-	{
-		
-		IAction* pAction = new CRemoveAction(m_pSelectShape, &GetDocument()->m_listShapes);
-		m_actionmanager.InsertAction(pAction);
 
-		GetDocument()->m_listShapes.RemoveAt(GetDocument()->m_listShapes.Find(m_pSelectShape));
-		
-		InvalidateRect(NULL, FALSE);
-		/*delete m_pSelectShape;
-		m_pSelectShape = nullptr;*/
+
+  
+	if (m_pSelectShape != nullptr)
+	{
+		//查找索引值
+		int nIdx = 0;
+		auto pos = GetDocument()->m_LstIshapes.GetHeadPosition();
+		while (pos)
+		{
+			auto pShap = GetDocument()->m_LstIshapes.GetNext(pos);
+			if (pShap == m_pSelectShape)
+			{
+				break;
+			}
+
+			++nIdx;
+		}
+
+        //保存删除操作
+        CDelOpt* pDelOpt = new CDelOpt(
+			m_pSelectShape,
+			nIdx,
+			&(GetDocument()->m_LstIshapes)
+			);
+		m_OptMgr.AddOpt(pDelOpt);
+
 	}
+
+
+	//删除操作
+    if (m_pSelectShape != NULL)
+    {
+		auto pos = GetDocument()->m_LstIshapes.Find(m_pSelectShape);
+		GetDocument()->m_LstIshapes.RemoveAt(pos);
+        
+
+        /*   delete m_pSelectShape;
+           m_pSelectShape = nullptr;
+           m_pCurrentIShape = nullptr;*/
+	
+    }
+
+	InvalidateRect(NULL, FALSE);
 }
 
 
-void CCADView::OnEditRedo()
+void CCADView::OnRButtonDown(UINT nFlags, CPoint point)
 {
-	// TODO: 在此添加命令处理程序代码
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
 
-	m_actionmanager.redo();
+	//获得当前点击的坐标，加载菜单资源，得到子菜单的返回值，弹出菜单
+	CPoint pt;
+	GetCursorPos(&pt);
+    CMenu mnRMenu;
+    mnRMenu.LoadMenuA(IDR_MENU1);
+	CMenu* m_SubMenu = mnRMenu.GetSubMenu(0);
+	m_SubMenu->TrackPopupMenu(TPM_RIGHTBUTTON, pt.x, pt.y, this);
+
+	CView::OnRButtonDown(nFlags, point);
+}
+
+
+void CCADView::OnRote()
+{
+	auto BeginPt =	m_pSelectShape->GetBeginPt();
+	auto EndPt =	m_pSelectShape->GetEndPt();
+
+	rotate(BeginPt, EndPt, PI / 2);
+
+	//保存旋转操作
+	auto pOpt = new CRotateOpt(
+		m_pSelectShape,
+		m_pSelectShape->GetBeginPt(),
+		m_pSelectShape->GetEndPt(),
+		BeginPt,
+		EndPt);
+	m_OptMgr.AddOpt(pOpt);
+
+
+	m_pSelectShape->SetBeginPt(BeginPt);
+	m_pSelectShape->SetEndPt(EndPt);
+	InvalidateRect(NULL, FALSE);
+}
+
+
+void CCADView::OnSiglepen()
+{
+    CPenSet  PenSetStyle;
+    //保存上一次选择的画笔
+    PenSetStyle.m_PenStyle = m_nPenStyle;
+    PenSetStyle.m_edtWidth = m_nPenWidth;
+    PenSetStyle.m_PenClr =   m_clrPenColor;
+
+    PenSetStyle.DoModal();
+    //得到更改后的画笔属性
+ 
+
+    m_pSelectShape->SetClrPenColor(PenSetStyle.m_PenClr);
+    m_pSelectShape->SetPenStyle(PenSetStyle.m_PenStyle);
+    m_pSelectShape->SetPenWith(PenSetStyle.m_edtWidth);
 	InvalidateRect(NULL, FALSE);
 
 }
 
 
-void CCADView::OnEditUndo()
+void CCADView::OnSiglebrush()
 {
-	// TODO: 在此添加命令处理程序代码
-	m_actionmanager.undo();
+	
+    CBrushSet BrushSetStyle;
+
+    BrushSetStyle.m_nBrushStyle =	m_nBrushStyle;
+    BrushSetStyle.m_nShadowStyle =	m_nShadowStyle;
+    BrushSetStyle.m_varBrushColor = m_varBrushColor;
+
+    BrushSetStyle.DoModal();
+
+
+
+	m_pSelectShape->SetBrushStyle(BrushSetStyle.m_nBrushStyle);
+	m_pSelectShape->SetClrBrushColor(BrushSetStyle.m_varBrushColor);
+	m_pSelectShape->SetShadowStyle(BrushSetStyle.m_nShadowStyle);
+
+	InvalidateRect(NULL, FALSE);
+
+}
+
+
+void CCADView::OnUndo()
+{
+   //撤销操作。动作管理类
+	m_OptMgr.Undo();
+	InvalidateRect(NULL, FALSE);
+}
+
+
+void CCADView::OnRedo()
+{
+	//恢复操作，动作管理类
+	m_OptMgr.Redo();
 	InvalidateRect(NULL, FALSE);
 }
 
 
 void CCADView::Serialize(CArchive& ar)
 {
-    if (ar.IsStoring())
-    {	// storing code
-	/*	POSITION pos = m_listShapes.GetHeadPosition();*/
+	if (ar.IsStoring())
+	{	// storing code
 
+	}
+	else
+	{	// loading code
+
+	}
+}
+
+
+void CCADView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/)
+{
+    // TODO: 在此添加专用代码和/或调用基类
+	auto strSlecText = GetDocument()->m_TreeSelect;
+	if (strSlecText == "直线")
+	{
+		OnLine();
+	}
+    else if (strSlecText == "矩形")
+    {
+		OnRect();
     }
-    else
-    {	// loading code
+    else if (strSlecText == "椭圆")
+    {
+		OnEllipse();
     }
+    else if (strSlecText == "五角星")
+    {
+		OnStar();
+	}
+    else if (strSlecText == "画笔设置")
+    {
+		OnPen();
+    }
+    else if (strSlecText == "画刷设置")
+    {
+		OnBrush();
+    }
+
+}
+
+
+BOOL CCADView::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo)
+{
+	// TODO: 在此添加专用代码和/或调用基类
+	
+
+   /* if (CFrameWnd::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo))
+        return TRUE;
+
+    CWandererDoc* pDoc = (CWandererDoc*)GetActiveDocument();
+    if (pDoc != NULL)
+        POSITION pos = pDoc->GetFirstViewPosition();
+
+    while (pos != NULL)
+    {
+        CView* pNextView = pDoc->GetNextView(pos);
+        if (pNextView != GetActiveView())
+        {
+            if (pNextView->OnCmdMsg(nID, nCode, pExtra, pHandlerInfo))
+                return TRUE;
+        }
+    }
+
+    return FALSE;*/
+
+
+
+
+	return CView::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo);
 }

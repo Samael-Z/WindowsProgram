@@ -3,21 +3,21 @@
   <ItemGroup>
     <Filter Include="源文件">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+      <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="头文件">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
     <Filter Include="资源文件">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Shape">
-      <UniqueIdentifier>{ec65081d-7ce8-40cd-bb0b-c60754f36b1c}</UniqueIdentifier>
+    <Filter Include="IShape">
+      <UniqueIdentifier>{cc166674-e1e0-4fa9-9249-07628448c57c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="redoundo">
-      <UniqueIdentifier>{9c77f7cf-84e5-453a-b217-39158c130d1a}</UniqueIdentifier>
+    <Filter Include="视图分割">
+      <UniqueIdentifier>{eda15ced-22ee-4760-b225-53ca4b6a3830}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -45,41 +45,50 @@
     <ClInclude Include="pch.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CDrawLine.h">
+      <Filter>IShape</Filter>
+    </ClInclude>
+    <ClInclude Include="CDrawFiveStar.h">
+      <Filter>IShape</Filter>
+    </ClInclude>
+    <ClInclude Include="CDrawEllipse.h">
+      <Filter>IShape</Filter>
+    </ClInclude>
+    <ClInclude Include="CDrawRectangle.h">
+      <Filter>IShape</Filter>
+    </ClInclude>
     <ClInclude Include="IShape.h">
-      <Filter>Shape</Filter>
+      <Filter>IShape</Filter>
     </ClInclude>
-    <ClInclude Include="CLine.h">
-      <Filter>Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="CEllipse.h">
-      <Filter>Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="CRectangle.h">
-      <Filter>Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="CStar.h">
-      <Filter>Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="CDrawSetting.h">
+    <ClInclude Include="CPenSet.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\钉钉上课压缩包\MFC\MFC 08\CR36CAD\CR36CAD\Rotate.h">
-      <Filter>Shape</Filter>
+    <ClInclude Include="CBrush.h">
+      <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CMoveAction.h">
-      <Filter>redoundo</Filter>
+    <ClInclude Include="rota.h">
+      <Filter>IShape</Filter>
     </ClInclude>
-    <ClInclude Include="IAction.h">
-      <Filter>redoundo</Filter>
+    <ClInclude Include="IOpt.h">
+      <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CInsertAction.h">
-      <Filter>redoundo</Filter>
+    <ClInclude Include="COptMannager.h">
+      <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CActionManager.h">
-      <Filter>redoundo</Filter>
+    <ClInclude Include="CRotateOpt.h">
+      <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CRemoveAction.h">
-      <Filter>redoundo</Filter>
+    <ClInclude Include="CMoveOpt.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CDelOpt.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CAddOpt.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CadLeftTreeView.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -98,38 +107,47 @@
     <ClCompile Include="pch.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="CDrawEllipse.cpp">
+      <Filter>IShape</Filter>
+    </ClCompile>
+    <ClCompile Include="CDrawFiveStar.cpp">
+      <Filter>IShape</Filter>
+    </ClCompile>
+    <ClCompile Include="CDrawLine.cpp">
+      <Filter>IShape</Filter>
+    </ClCompile>
     <ClCompile Include="IShape.cpp">
-      <Filter>Shape</Filter>
+      <Filter>IShape</Filter>
     </ClCompile>
-    <ClCompile Include="CLine.cpp">
-      <Filter>Shape</Filter>
+    <ClCompile Include="CDrawRectangle.cpp">
+      <Filter>IShape</Filter>
     </ClCompile>
-    <ClCompile Include="CEllipse.cpp">
-      <Filter>Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="CRectangle.cpp">
-      <Filter>Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="CStar.cpp">
-      <Filter>Shape</Filter>
-    </ClCompile>
-    <ClCompile Include="CDrawSetting.cpp">
+    <ClCompile Include="CPenSet.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CMoveAction.cpp">
-      <Filter>redoundo</Filter>
+    <ClCompile Include="CBrush.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="IAction.cpp">
-      <Filter>redoundo</Filter>
+    <ClCompile Include="IOpt.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CInsertAction.cpp">
-      <Filter>redoundo</Filter>
+    <ClCompile Include="COptMannager.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CActionManager.cpp">
-      <Filter>redoundo</Filter>
+    <ClCompile Include="CRotateOpt.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CRemoveAction.cpp">
-      <Filter>redoundo</Filter>
+    <ClCompile Include="CMoveOpt.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CDelOpt.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CAddOpt.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CadLeftTreeView.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

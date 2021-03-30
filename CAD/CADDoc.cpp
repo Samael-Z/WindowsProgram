@@ -56,40 +56,28 @@ BOOL CCADDoc::OnNewDocument()
 
 void CCADDoc::Serialize(CArchive& ar)
 {
-	
-	//保存数据
 	if (ar.IsStoring())
 	{
-		int nCount = m_listShapes.GetCount();
-		ar.Write((char*)&nCount, sizeof(nCount));
-		POSITION pos = m_listShapes.GetHeadPosition();
-		while (pos)
-		{
-			ar << m_listShapes.GetNext(pos);
-		}
+        int nCount = m_LstIshapes.GetCount();
+        ar.Write((char*)&nCount, sizeof(nCount));
+        POSITION pos = m_LstIshapes.GetHeadPosition();
+        while (pos)
+        {
+            ar << m_LstIshapes.GetNext(pos);
+        }
 	}
-	//读取数据
 	else
 	{
-		// TODO:  在此添加加载代码
-	/*	POSITION pos = m_listShapes.GetHeadPosition();
-		while (pos)
-		{
-			IShape* pShape = m_listShapes.GetNext(pos);
-			delete pShape;
-			pShape = nullptr;
-		}*/
-		
+        int nCount = 0;
+        ar.Read((char*)&nCount, sizeof(nCount));
+        for (int i = 0; i < nCount; i++)
+        {
+            CObject* pObj = NULL;
+            ar >> pObj;
+			m_LstIshapes.AddTail((IShape*)pObj);
+        }
 
-		int nCount = 0;
-		ar.Read((char*)&nCount, sizeof(nCount));
-		for (int i = 0; i < nCount; i++)
-		{
-			CObject* pObj = NULL;
-			ar >> pObj;
-			m_listShapes.AddTail((IShape*)pObj);
-		}
-		
+
 	}
 }
 

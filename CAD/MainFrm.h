@@ -3,7 +3,8 @@
 //
 
 #pragma once
-
+#include "CADView.h"
+#include <afxcview.h>
 class CMainFrame : public CFrameWnd
 {
 	
@@ -20,6 +21,8 @@ public:
 // 重写
 public:
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+
+	CSplitterWnd m_SplitterCad;
 
 // 实现
 public:
@@ -38,6 +41,9 @@ protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	DECLARE_MESSAGE_MAP()
 
+	virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
+public:
+	virtual BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
 };
 
 

@@ -7,6 +7,7 @@
 #include "CAD.h"
 
 #include "MainFrm.h"
+#include "CadLeftTreeView.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -94,3 +95,59 @@ void CMainFrame::Dump(CDumpContext& dc) const
 
 // CMainFrame 消息处理程序
 
+
+
+BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
+{
+    // TODO: 在此添加专用代码和/或调用基类
+
+
+	CRect  rc;
+	GetClientRect(&rc);
+	m_SplitterCad.CreateStatic(this, 1, 2);
+    m_SplitterCad.CreateView(
+        0,
+        0,
+        RUNTIME_CLASS(CadLeftTreeView),
+		SIZE{ rc.Width() / 5, rc.Height() },
+        pContext);
+    m_SplitterCad.CreateView(
+        0,
+        1,
+        RUNTIME_CLASS(CCADView),
+        SIZE{ rc.Width(), rc.Height() },
+        pContext);
+
+	return true;
+   // return CFrameWnd::OnCreateClient(lpcs, pContext);
+}
+
+
+BOOL CMainFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo)
+{
+	// TODO: 在此添加专用代码和/或调用基类
+
+    if (CFrameWnd::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo))
+        return TRUE;
+    CCADDoc* pDoc = (CCADDoc*)GetActiveDocument();
+	
+    if (pDoc == NULL)
+    {
+        return FALSE;
+    }
+	POSITION  pos = pDoc->GetFirstViewPosition();
+    while (pos != NULL)
+    {
+        CView* pNextView = pDoc->GetNextView(pos);
+        if (pNextView != GetActiveView())
+        {
+            if (pNextView->OnCmdMsg(nID, nCode, pExtra, pHandlerInfo))
+                return TRUE;
+        }
+    }
+
+    return FALSE;
+
+
+	//return CFrameWnd::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo);
+}
